@@ -3,7 +3,6 @@ import abc
 import asyncio
 import base64
 import json
-import logging
 import os
 import typing
 import urllib.parse
@@ -26,9 +25,7 @@ class BaseClient(abc.ABC):
 
     __slots__ = ("cookie_manager", "cache", "_authkey", "_lang", "_region", "_default_game", "uids")
 
-    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"  # noqa: E501
-
-    logger: logging.Logger = logging.getLogger(__name__)
+    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"  # noqa: E50
 
     cookie_manager: manager.BaseCookieManager
     cache: client_cache.BaseCache
@@ -160,17 +157,6 @@ class BaseClient(abc.ABC):
 
         self._authkey = authkey
 
-    @property
-    def debug(self) -> bool:
-        """Whether the debug logs are being shown in stdout"""
-        return logging.getLogger("genshin").level == logging.DEBUG
-
-    @debug.setter
-    def debug(self, debug: bool) -> None:
-        logging.basicConfig()
-        level = logging.DEBUG if debug else logging.NOTSET
-        logging.getLogger("genshin").setLevel(level)
-
     def set_cookies(self, cookies: typing.Optional[manager.AnyCookieOrHeader] = None, **kwargs: typing.Any) -> None:
         """Parse and set cookies."""
         if not bool(cookies) ^ bool(kwargs):
@@ -249,12 +235,7 @@ class BaseClient(abc.ABC):
         url = yarl.URL(url)
         if params:
             params = {k: v for k, v in params.items() if k != "authkey"}
-            url = url.update_query(params)
-
-        if data:
-            self.logger.debug("%s %s\n%s", method, url, json.dumps(data, separators=(",", ":")))
-        else:
-            self.logger.debug("%s %s", method, url)
+            url.update_query(params)
 
     async def request(
         self,

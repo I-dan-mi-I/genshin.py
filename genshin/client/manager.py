@@ -4,7 +4,6 @@ from __future__ import annotations
 import abc
 import functools
 import http.cookies
-import logging
 import typing
 
 import aiohttp
@@ -15,8 +14,6 @@ from genshin import errors, types
 from genshin.utility import fs as fs_utility
 
 from . import ratelimit
-
-_LOGGER = logging.getLogger(__name__)
 
 __all__ = ["BaseCookieManager", "CookieManager", "InternationalCookieManager", "RotatingCookieManager"]
 
@@ -338,7 +335,6 @@ class RotatingCookieManager(BaseCookieManager):
                 data = await self._request(method, url, cookies=cookie, **kwargs)
             except errors.TooManyRequests:
                 cookie_id = cookie.get("account_id") or cookie.get("ltuid")
-                _LOGGER.debug("Putting cookie %s on cooldown.", cookie_id)
                 self._cookies._cookies[index] = (cookie, self._cookies.MAX_USES)
             else:
                 self._cookies._cookies[index] = (cookie, 1 if uses >= self._cookies.MAX_USES else uses + 1)
@@ -422,8 +418,6 @@ class InternationalCookieManager(BaseCookieManager):
             try:
                 data = await self._request(method, url, cookies=cookie, **kwargs)
             except errors.TooManyRequests:
-                cookie_id = cookie.get("account_id") or cookie.get("ltuid")
-                _LOGGER.debug("Putting cookie %s for %s on cooldown.", cookie_id, region)
                 self._cookies[region]._cookies[index] = (cookie, self._cookies[region].MAX_USES)
             else:
                 uses = 1 if uses >= self._cookies[region].MAX_USES else uses + 1
